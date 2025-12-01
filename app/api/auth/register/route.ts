@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { hash } from "bcryptjs";
 import prisma from "@/lib/prisma";
-import { UserRole } from "@prisma/client";
+
+// Define valid roles as a type
+type UserRole = "OWNER" | "MECHANIC" | "INSURER" | "ADMIN" | "ML_ENGINEER";
 
 export async function POST(request: NextRequest) {
   try {
@@ -35,7 +37,7 @@ export async function POST(request: NextRequest) {
 
     // Validate role
     const validRoles: UserRole[] = ["OWNER", "MECHANIC", "INSURER"];
-    const userRole: UserRole = validRoles.includes(role) ? role : "OWNER";
+    const userRole: UserRole = validRoles.includes(role as UserRole) ? (role as UserRole) : "OWNER";
 
     // Check if user already exists
     const existingUser = await prisma.user.findUnique({
