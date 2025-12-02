@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Car, Wrench, CheckCircle, Sparkles, Zap, Shield } from "lucide-react";
+import { Car, Wrench, CheckCircle, Sparkles, Zap, Shield, Loader2 } from "lucide-react";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -19,6 +20,70 @@ const features = [
 
 export default function AuthPage() {
   const [activeTab, setActiveTab] = useState("login");
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+  const router = useRouter();
+
+  // Check if user is already authenticated
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        console.log("Checking auth status...");
+        const response = await fetch("/api/auth/me", {
+          method: "GET",
+          credentials: "include",
+          cache: "no-store",
+          headers: {
+            "Cache-Control": "no-cache",
+          },
+        });
+
+        console.log("Auth response status:", response.status);
+
+        if (response.ok) {
+          // User is authenticated, redirect to dashboard
+          const data = await response.json();
+          console.log("User is authenticated:", data.user);
+          const role = data.user?.role;
+
+          // Redirect based on role - use window.location for hard redirect
+          let redirectUrl = "/dashboard";
+          switch (role) {
+            case "ADMIN":
+              redirectUrl = "/admin";
+              break;
+            case "MECHANIC":
+              redirectUrl = "/mechanic";
+              break;
+            case "INSURER":
+              redirectUrl = "/insurer";
+              break;
+          }
+          console.log("Redirecting to:", redirectUrl);
+          window.location.href = redirectUrl;
+        } else {
+          console.log("User is not authenticated");
+          setIsCheckingAuth(false);
+        }
+      } catch (error) {
+        console.error("Auth check error:", error);
+        setIsCheckingAuth(false);
+      }
+    };
+
+    checkAuth();
+  }, [router]);
+
+  // Show loading while checking authentication
+  if (isCheckingAuth) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-background to-muted/30">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="text-muted-foreground">Vérification...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex">
