@@ -128,15 +128,15 @@ export function LoginForm({ onForgotPassword }: LoginFormProps) {
     }
   }
 
-  async function handleSocialLogin(provider: "google" | "facebook") {
+  function handleSocialLogin(provider: "google" | "facebook") {
     setSocialLoading(provider);
-    try {
-      // TODO: Integrate with Better Auth social login
-      console.log(`${provider} login attempt`);
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-    } catch (error) {
-      console.error(`${provider} login error:`, error);
-    } finally {
+
+    if (provider === "google") {
+      // Redirect to Google OAuth endpoint
+      window.location.href = "/api/auth/google";
+    } else if (provider === "facebook") {
+      // TODO: Implement Facebook login
+      console.log("Facebook login not implemented yet");
       setSocialLoading(null);
     }
   }

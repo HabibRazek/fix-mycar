@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import Image from "next/image";
 import { getCurrentUser } from "@/lib/auth";
 import { LogoutButton } from "@/components/auth/logout-button";
 
@@ -12,6 +13,14 @@ export default async function DashboardLayout({
   if (!user) {
     redirect("/login");
   }
+
+  // Get user initials for fallback avatar
+  const initials = user.name
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -27,6 +36,21 @@ export default async function DashboardLayout({
             </div>
 
             <div className="flex items-center gap-4">
+              {/* User Avatar */}
+              {user.image ? (
+                <Image
+                  src={user.image}
+                  alt={user.name}
+                  width={40}
+                  height={40}
+                  className="rounded-full border-2 border-gray-200"
+                />
+              ) : (
+                <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-600 to-emerald-500 flex items-center justify-center">
+                  <span className="text-white font-semibold text-sm">{initials}</span>
+                </div>
+              )}
+
               <div className="text-right">
                 <p className="text-sm font-medium text-gray-900">{user.name}</p>
                 <p className="text-xs text-gray-500">{user.role}</p>

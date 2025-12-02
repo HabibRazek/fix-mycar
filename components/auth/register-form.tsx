@@ -150,15 +150,15 @@ export function RegisterForm() {
     }
   }
 
-  async function handleSocialSignup(provider: "google" | "facebook") {
+  function handleSocialSignup(provider: "google" | "facebook") {
     setSocialLoading(provider);
-    try {
-      // TODO: Integrate social signup
-      console.log(`${provider} signup attempt`);
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-    } catch (err) {
-      console.error(`${provider} signup error:`, err);
-    } finally {
+
+    if (provider === "google") {
+      // Redirect to Google OAuth endpoint (same as login - will create account if needed)
+      window.location.href = "/api/auth/google";
+    } else if (provider === "facebook") {
+      // TODO: Implement Facebook signup
+      console.log("Facebook signup not implemented yet");
       setSocialLoading(null);
     }
   }
