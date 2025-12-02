@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Play, Sparkles, Shield, Zap } from "lucide-react";
+import { ArrowRight, Sparkles, Shield, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export function HeroSection() {
@@ -53,14 +53,7 @@ export function HeroSection() {
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
             </Link>
-            <Button
-              size="lg"
-              variant="outline"
-              className="h-14 px-8 text-lg border-white/30 text-white hover:bg-white/10 backdrop-blur-sm"
-            >
-              <Play className="mr-2 h-5 w-5" />
-              Voir la démo
-            </Button>
+            
           </div>
 
           {/* Trust Indicators */}
