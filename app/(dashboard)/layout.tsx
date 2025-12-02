@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
+import { LogoutButton } from "@/components/auth/logout-button";
 
 export default async function DashboardLayout({
   children,
@@ -24,20 +25,13 @@ export default async function DashboardLayout({
               </div>
               <span className="font-display font-bold text-xl">Fix My Car</span>
             </div>
-            
+
             <div className="flex items-center gap-4">
               <div className="text-right">
                 <p className="text-sm font-medium text-gray-900">{user.name}</p>
                 <p className="text-xs text-gray-500">{user.role}</p>
               </div>
-              <form action="/api/auth/logout" method="POST">
-                <button
-                  type="submit"
-                  className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
-                >
-                  Déconnexion
-                </button>
-              </form>
+              <LogoutButton className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors" />
             </div>
           </div>
         </div>
