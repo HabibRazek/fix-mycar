@@ -1,5 +1,6 @@
 import { getCurrentUser } from "@/lib/auth";
 import { Car, Wrench, FileText, TrendingUp } from "lucide-react";
+import Link from "next/link";
 
 export default async function DashboardPage() {
   const user = await getCurrentUser();
@@ -53,12 +54,12 @@ export default async function DashboardPage() {
               Ajouter un véhicule
             </span>
           </button>
-          <button className="flex items-center gap-3 p-4 rounded-lg border border-gray-200 hover:border-emerald-500 hover:bg-emerald-50 transition-colors group">
+          <Link href="/diagnostic" className="flex items-center gap-3 p-4 rounded-lg border border-gray-200 hover:border-emerald-500 hover:bg-emerald-50 transition-colors group">
             <Wrench className="h-5 w-5 text-gray-400 group-hover:text-emerald-600" />
             <span className="font-medium text-gray-700 group-hover:text-emerald-600">
               Nouveau diagnostic
             </span>
-          </button>
+          </Link>
           <button className="flex items-center gap-3 p-4 rounded-lg border border-gray-200 hover:border-purple-500 hover:bg-purple-50 transition-colors group">
             <FileText className="h-5 w-5 text-gray-400 group-hover:text-purple-600" />
             <span className="font-medium text-gray-700 group-hover:text-purple-600">
