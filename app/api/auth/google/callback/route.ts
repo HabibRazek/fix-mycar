@@ -4,7 +4,6 @@ import { createSession } from "@/lib/auth";
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID!;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET!;
-const REDIRECT_URI = `${process.env.BETTER_AUTH_URL}/api/auth/google/callback`;
 
 interface GoogleTokenResponse {
   access_token: string;
@@ -26,21 +25,24 @@ interface GoogleUserInfo {
 
 export async function GET(request: NextRequest) {
   try {
+    // Build redirect URI from the request URL
+    const requestUrl = new URL(request.url);
+    const baseUrl = `${requestUrl.protocol}//${requestUrl.host}`;
+    const redirectUri = `${baseUrl}/api/auth/google/callback`;
+
+    console.log("Google Callback - Redirect URI:", redirectUri);
+
     const { searchParams } = new URL(request.url);
     const code = searchParams.get("code");
     const error = searchParams.get("error");
 
     if (error) {
       console.error("Google OAuth error:", error);
-      return NextResponse.redirect(
-        new URL("/login?error=google_auth_failed", process.env.BETTER_AUTH_URL!)
-      );
+      return NextResponse.redirect(new URL("/login?error=google_auth_failed", baseUrl));
     }
 
     if (!code) {
-      return NextResponse.redirect(
-        new URL("/login?error=no_code", process.env.BETTER_AUTH_URL!)
-      );
+      return NextResponse.redirect(new URL("/login?error=no_code", baseUrl));
     }
 
     // Exchange code for tokens
@@ -51,7 +53,7 @@ export async function GET(request: NextRequest) {
         code,
         client_id: GOOGLE_CLIENT_ID,
         client_secret: GOOGLE_CLIENT_SECRET,
-        redirect_uri: REDIRECT_URI,
+        redirect_uri: redirectUri,
         grant_type: "authorization_code",
       }),
     });
@@ -59,9 +61,7 @@ export async function GET(request: NextRequest) {
     if (!tokenResponse.ok) {
       const errorData = await tokenResponse.text();
       console.error("Token exchange failed:", errorData);
-      return NextResponse.redirect(
-        new URL("/login?error=token_exchange_failed", process.env.BETTER_AUTH_URL!)
-      );
+      return NextResponse.redirect(new URL("/login?error=token_exchange_failed", baseUrl));
     }
 
     const tokens: GoogleTokenResponse = await tokenResponse.json();
@@ -76,9 +76,7 @@ export async function GET(request: NextRequest) {
 
     if (!userInfoResponse.ok) {
       console.error("Failed to get user info");
-      return NextResponse.redirect(
-        new URL("/login?error=user_info_failed", process.env.BETTER_AUTH_URL!)
-      );
+      return NextResponse.redirect(new URL("/login?error=user_info_failed", baseUrl));
     }
 
     const googleUser: GoogleUserInfo = await userInfoResponse.json();
@@ -133,14 +131,10 @@ export async function GET(request: NextRequest) {
         break;
     }
 
-    return NextResponse.redirect(
-      new URL(redirectUrl, process.env.BETTER_AUTH_URL!)
-    );
+    return NextResponse.redirect(new URL(redirectUrl, baseUrl));
   } catch (error) {
     console.error("Google callback error:", error);
-    return NextResponse.redirect(
-      new URL("/login?error=callback_failed", process.env.BETTER_AUTH_URL!)
-    );
+    return NextResponse.redirect(new URL("/login?error=callback_failed", request.url));
   }
 }
 
