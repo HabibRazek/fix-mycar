@@ -68,33 +68,122 @@ export const frequencyOptions = [
   { value: "specific", label: "Dans des conditions spécifiques" },
 ];
 
+// Symptoms extracted from the actual dataset (automotive_faults_aktc_obike_et_al.json)
 export const symptoms = [
-  { id: "strange_noise", label: "Bruits étranges" },
-  { id: "vibration", label: "Vibrations anormales" },
-  { id: "smoke", label: "Fumée" },
-  { id: "smell", label: "Odeurs inhabituelles" },
-  { id: "leak", label: "Fuites de liquide" },
-  { id: "starting_issues", label: "Difficultés au démarrage" },
-  { id: "stalling", label: "Calages fréquents" },
-  { id: "power_loss", label: "Perte de puissance" },
-  { id: "hard_steering", label: "Direction dure" },
-  { id: "braking_issues", label: "Problèmes de freinage" },
-  { id: "overheating", label: "Surchauffe" },
-  { id: "battery_drain", label: "Batterie se décharge" },
+  // Brake System Symptoms
+  { id: "abs_warning_light_on", label: "Voyant ABS allumé" },
+  { id: "abs_light_stays_on", label: "Voyant ABS reste allumé" },
+  { id: "brake_pedal_pulsation", label: "Pulsation de la pédale de frein" },
+  { id: "brake_dragging", label: "Frein qui traîne" },
+  { id: "brake_pulling_to_one_side", label: "Frein tire d'un côté" },
+  { id: "brake_fluid_leak", label: "Fuite de liquide de frein" },
+  { id: "brake_fluid_leaks", label: "Fuites de liquide de frein" },
+  { id: "spongy_brake_pedal", label: "Pédale de frein spongieuse" },
+  { id: "hard_brake_pedal", label: "Pédale de frein dure" },
+  { id: "soft_brake_pedal", label: "Pédale de frein molle" },
+  { id: "squealing_brakes", label: "Freins qui grincent" },
+  { id: "brake_warning_light_on", label: "Voyant frein allumé" },
+  
+  // Engine Symptoms
+  { id: "check_engine_light_on", label: "Voyant moteur allumé" },
+  { id: "engine_overheating", label: "Surchauffe du moteur" },
+  { id: "engine_knocking_noise", label: "Bruit de cognement du moteur" },
+  { id: "engine_knocking_pinging", label: "Cognement/ping du moteur" },
+  { id: "engine_misfires", label: "Ratés du moteur" },
+  { id: "engine_hesitates_on_acceleration", label: "Hésitation à l'accélération" },
+  { id: "engine_sputters_at_high_speeds", label: "Hoquets à haute vitesse" },
+  { id: "engine_cranks_slowly", label: "Démarrage lent" },
+  { id: "engine_does_not_crank", label: "Moteur ne démarre pas" },
+  { id: "difficulty_starting_engine", label: "Difficulté à démarrer" },
+  { id: "decreased_engine_performance", label: "Baisse de performance" },
+  { id: "engine_performance_issues", label: "Problèmes de performance" },
   { id: "rough_idle", label: "Ralenti instable" },
-  { id: "gear_issues", label: "Problèmes de vitesses" },
-  { id: "fuel_consumption", label: "Consommation excessive" },
+  { id: "rough_idling", label: "Ralenti irrégulier" },
+  { id: "black_smoke_from_exhaust", label: "Fumée noire du pot d'échappement" },
+  { id: "blue_smoke_from_exhaust", label: "Fumée bleue du pot d'échappement" },
+  { id: "white_smoke_from_exhaust", label: "Fumée blanche du pot d'échappement" },
+  { id: "burning_oil_smell_from_engine_bay", label: "Odeur d'huile brûlée" },
+  
+  // Transmission Symptoms
+  { id: "delayed_shifting", label: "Changement de vitesse retardé" },
+  { id: "difficulty_shifting_gears", label: "Difficulté à changer de vitesse" },
+  { id: "difficulty_engaging_gears", label: "Difficulté à engager les vitesses" },
+  { id: "delay_in_gear_engagement", label: "Retard d'engagement" },
+  { id: "transmission_won_t_shift_gears", label: "Boîte ne change pas de vitesse" },
+  { id: "erratic_shifting", label: "Changements erratiques" },
+  { id: "clunking_noise_when_shifting", label: "Bruit de claquement au changement" },
+  { id: "clutch_slipping", label: "Embrayage qui patine" },
+  { id: "clutch_pedal_feels_spongy", label: "Pédale d'embrayage spongieuse" },
+  { id: "clutch_pedal_feels_loose", label: "Pédale d'embrayage lâche" },
+  
+  // Cooling System Symptoms
+  { id: "coolant_leak", label: "Fuite de liquide de refroidissement" },
+  { id: "coolant_leak_under_vehicle", label: "Fuite sous le véhicule" },
+  { id: "coolant_leaks_under_the_vehicle", label: "Fuites sous le véhicule" },
+  { id: "coolant_leak_near_front_of_engine", label: "Fuite à l'avant du moteur" },
+  { id: "coolant_odor_in_cabin", label: "Odeur de liquide de refroidissement" },
+  { id: "low_coolant_warning_light", label: "Voyant niveau de liquide bas" },
+  { id: "overheating", label: "Surchauffe" },
+  
+  // AC System Symptoms
+  { id: "ac_system_not_cooling", label: "Climatisation ne refroidit pas" },
+  { id: "ac_system_not_working", label: "Climatisation ne fonctionne pas" },
+  { id: "ac_not_cooling_at_idle", label: "AC ne refroidit pas au ralenti" },
+  { id: "no_cold_air_from_vents", label: "Pas d'air froid des bouches" },
+  { id: "warm_air_from_ac_vents", label: "Air chaud des bouches AC" },
+  { id: "loud_noise_when_ac_is_on", label: "Bruit fort quand AC est allumé" },
+  
+  // Electrical Symptoms
+  { id: "battery_warning_light_on", label: "Voyant batterie allumé" },
+  { id: "dim_headlights", label: "Phares faibles" },
+  { id: "dim_headlight", label: "Phare faible" },
+  { id: "headlight_not_working", label: "Phare ne fonctionne pas" },
+  { id: "clicking_sound_when_key_is_turned", label: "Clic à la clé" },
+  { id: "clicking_sound_when_starting", label: "Clic au démarrage" },
+  { id: "door_lock_not_responding", label: "Verrouillage ne répond pas" },
+  { id: "clicking_sound_from_door", label: "Bruit de clic de la portière" },
+  
+  // Fuel System Symptoms
+  { id: "loss_of_power", label: "Perte de puissance" },
+  { id: "poor_fuel_economy", label: "Consommation excessive" },
+  { id: "gas_cap_warning_light", label: "Voyant bouchon de réservoir" },
+  { id: "fuel_smell", label: "Odeur d'essence" },
+  { id: "fuel_leak", label: "Fuite de carburant" },
+  
+  // Steering & Suspension Symptoms
+  { id: "hard_steering", label: "Direction dure" },
+  { id: "steering_wheel_vibration", label: "Vibration du volant" },
+  { id: "clicking_or_popping_noise_when_turning", label: "Clic/pop en tournant" },
+  { id: "axle_noise_while_turning", label: "Bruit d'essieu en tournant" },
+  { id: "clunking_noise_when_accelerating", label: "Bruit de claquement à l'accélération" },
+  { id: "driveline_vibration", label: "Vibration de la transmission" },
+  { id: "vibration", label: "Vibrations" },
+  { id: "vibration_at_high_speeds", label: "Vibrations à haute vitesse" },
+  
+  // Other Symptoms
+  { id: "low_oil_pressure_warning_light", label: "Voyant pression d'huile basse" },
+  { id: "oil_leak", label: "Fuite d'huile" },
+  { id: "oil_leaks", label: "Fuites d'huile" },
+  { id: "tpms_warning_light_on", label: "Voyant pression pneus" },
+  { id: "glow_plug_indicator_light_stays_on", label: "Voyant bougie de préchauffage" },
+  { id: "excessive_exhaust_smoke", label: "Fumée excessive" },
+  { id: "strange_noise", label: "Bruits étranges" },
 ];
 
+// Warning lights extracted from the actual dataset
 export const warningLightOptions = [
-  { id: "check_engine", label: "Voyant moteur" },
-  { id: "oil", label: "Voyant huile" },
-  { id: "battery", label: "Voyant batterie" },
-  { id: "temperature", label: "Voyant température" },
-  { id: "brake", label: "Voyant frein" },
-  { id: "abs", label: "Voyant ABS" },
-  { id: "airbag", label: "Voyant airbag" },
-  { id: "tire_pressure", label: "Voyant pression pneus" },
+  { id: "check_engine_light_on", label: "Voyant moteur (Check Engine)" },
+  { id: "abs_warning_light_on", label: "Voyant ABS" },
+  { id: "abs_light_stays_on", label: "Voyant ABS (reste allumé)" },
+  { id: "battery_warning_light_on", label: "Voyant batterie" },
+  { id: "brake_warning_light_on", label: "Voyant frein" },
+  { id: "low_oil_pressure_warning_light", label: "Voyant pression d'huile basse" },
+  { id: "low_coolant_warning_light", label: "Voyant niveau de liquide de refroidissement" },
+  { id: "tpms_warning_light_on", label: "Voyant pression des pneus (TPMS)" },
+  { id: "gas_cap_warning_light", label: "Voyant bouchon de réservoir" },
+  { id: "glow_plug_indicator_light_stays_on", label: "Voyant bougie de préchauffage" },
+  { id: "dim_headlights", label: "Phares faibles" },
+  { id: "headlight_not_working", label: "Phare ne fonctionne pas" },
 ];
 
 export const years = Array.from({ length: 40 }, (_, i) => (new Date().getFullYear() - i).toString());

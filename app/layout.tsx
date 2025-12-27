@@ -1,6 +1,10 @@
 import type { Metadata } from "next";
 import { Inter, Space_Grotesk } from "next/font/google";
 import "./globals.css";
+import dynamic from "next/dynamic";
+
+// Import Crisp chat component
+const CrispChat = dynamic(() => import("@/components/crisp-chat"));
 
 const inter = Inter({
   variable: "--font-inter",
@@ -29,6 +33,7 @@ export default function RootLayout({
       <body
         className={`${inter.variable} ${spaceGrotesk.variable} font-sans antialiased`}
       >
+        <CrispChat />
         {children}
       </body>
     </html>

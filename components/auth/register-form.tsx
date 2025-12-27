@@ -87,7 +87,7 @@ const roleConfig = {
 };
 
 // Only show these roles for public registration
-const publicRoles = [UserRole.OWNER, UserRole.MECHANIC, UserRole.INSURER];
+const publicRoles = [UserRole.OWNER];
 
 export function RegisterForm() {
   const [showPassword, setShowPassword] = useState(false);
@@ -251,7 +251,7 @@ export function RegisterForm() {
                   <div className="relative group">
                     <User className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground/60 group-focus-within:text-primary transition-colors" />
                     <Input
-                      placeholder="Jean Dupont"
+                      placeholder="Omar Turki"
                       className="pl-11 h-12 bg-muted/30 border-muted-foreground/20 focus:border-primary/50 focus:bg-background transition-all"
                       {...field}
                     />
@@ -284,55 +284,6 @@ export function RegisterForm() {
             )}
           />
         </div>
-
-        {/* Role Selection */}
-        <FormField
-          control={form.control}
-          name="role"
-          render={({ field }) => (
-            <FormItem className="space-y-3">
-              <FormLabel className="text-sm font-medium tracking-wide">Vous êtes</FormLabel>
-              <FormControl>
-                <div className="grid grid-cols-3 gap-3">
-                  {publicRoles.map((role) => {
-                    const config = roleConfig[role];
-                    const IconComponent = config.icon;
-                    const isSelected = field.value === role;
-
-                    return (
-                      <button
-                        key={role}
-                        type="button"
-                        onClick={() => field.onChange(role)}
-                        className={`
-                          relative flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all duration-200
-                          ${isSelected
-                            ? 'border-primary bg-primary/5 shadow-md shadow-primary/10'
-                            : 'border-muted-foreground/20 hover:border-muted-foreground/40 hover:bg-muted/30'
-                          }
-                        `}
-                      >
-                        <div className={`
-                          flex h-10 w-10 items-center justify-center rounded-lg transition-colors
-                          ${isSelected
-                            ? 'bg-primary text-primary-foreground'
-                            : 'bg-muted text-muted-foreground'
-                          }
-                        `}>
-                          <IconComponent className="h-5 w-5" />
-                        </div>
-                        <span className={`text-sm font-semibold tracking-wide ${isSelected ? 'text-primary' : 'text-foreground'}`}>
-                          {config.label}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </FormControl>
-              <FormMessage className="text-xs" />
-            </FormItem>
-          )}
-        />
 
         {/* Password Fields */}
         <div className="grid gap-4 sm:grid-cols-2">

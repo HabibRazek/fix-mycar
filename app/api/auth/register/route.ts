@@ -35,8 +35,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate role
-    const validRoles: UserRole[] = ["OWNER", "MECHANIC", "INSURER"];
+    // Validate role - only OWNER is allowed for public registration
+    const validRoles: UserRole[] = ["OWNER"];
     const userRole: UserRole = validRoles.includes(role as UserRole) ? (role as UserRole) : "OWNER";
 
     // Check if user already exists

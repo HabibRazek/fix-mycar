@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 const plans = [
   {
     name: "Gratuit",
-    price: "0€",
+    price: "0",
+    currency: "TND",
     period: "/mois",
     description: "Parfait pour commencer",
     features: [
@@ -19,7 +20,8 @@ const plans = [
   },
   {
     name: "Pro",
-    price: "9,99€",
+    price: "35",
+    currency: "TND",
     period: "/mois",
     description: "Pour les automobilistes actifs",
     features: [
@@ -35,7 +37,8 @@ const plans = [
   },
   {
     name: "Garage",
-    price: "49,99€",
+    price: "165",
+    currency: "TND",
     period: "/mois",
     description: "Solution professionnelle",
     features: [
@@ -95,6 +98,7 @@ export function PricingSection() {
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">{plan.name}</h3>
                 <div className="flex items-baseline justify-center gap-1">
                   <span className="text-5xl font-display font-bold text-gray-900">{plan.price}</span>
+                  <span className="text-2xl font-semibold text-gray-700">{plan.currency}</span>
                   <span className="text-gray-500">{plan.period}</span>
                 </div>
                 <p className="text-gray-600 mt-2">{plan.description}</p>

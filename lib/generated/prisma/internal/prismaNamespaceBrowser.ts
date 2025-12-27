@@ -51,7 +51,9 @@ export const AnyNull = runtime.AnyNull
 
 
 export const ModelName = {
-  User: 'User'
+  User: 'User',
+  Vehicle: 'Vehicle',
+  Diagnosis: 'Diagnosis'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -83,6 +85,56 @@ export const UserScalarFieldEnum = {
 } as const
 
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
+
+
+export const VehicleScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  brand: 'brand',
+  model: 'model',
+  year: 'year',
+  carType: 'carType',
+  fuelType: 'fuelType',
+  transmission: 'transmission',
+  mileage: 'mileage',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type VehicleScalarFieldEnum = (typeof VehicleScalarFieldEnum)[keyof typeof VehicleScalarFieldEnum]
+
+
+export const DiagnosisScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  vehicleId: 'vehicleId',
+  problemCategory: 'problemCategory',
+  problemSeverity: 'problemSeverity',
+  problemDuration: 'problemDuration',
+  problemFrequency: 'problemFrequency',
+  symptoms: 'symptoms',
+  warningLights: 'warningLights',
+  problemDescription: 'problemDescription',
+  recentMaintenance: 'recentMaintenance',
+  additionalNotes: 'additionalNotes',
+  category: 'category',
+  diagnosis: 'diagnosis',
+  partInvolved: 'partInvolved',
+  severity: 'severity',
+  urgency: 'urgency',
+  repairAction: 'repairAction',
+  estimatedCostMin: 'estimatedCostMin',
+  estimatedCostMax: 'estimatedCostMax',
+  confidence: 'confidence',
+  vehicleBrand: 'vehicleBrand',
+  vehicleModel: 'vehicleModel',
+  vehicleYear: 'vehicleYear',
+  vehicleMileage: 'vehicleMileage',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type DiagnosisScalarFieldEnum = (typeof DiagnosisScalarFieldEnum)[keyof typeof DiagnosisScalarFieldEnum]
 
 
 export const SortOrder = {

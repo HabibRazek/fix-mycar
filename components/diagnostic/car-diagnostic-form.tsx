@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import React from "react";
 import { useForm, UseFormReturn } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Car, CheckCircle2, ChevronRight, ChevronLeft, Loader2 } from "lucide-react";
+import { Car, CheckCircle2, ChevronRight, ChevronLeft, Loader2, AlertTriangle, Wrench, DollarSign, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -12,10 +13,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import {
-  carBrands, carTypes, fuelTypes, transmissionTypes, problemCategories,
-  severityLevels, durationOptions, frequencyOptions, symptoms, warningLightOptions, years
+  carBrands, carTypes, fuelTypes, transmissionTypes, problemCategories as staticProblemCategories,
+  severityLevels, durationOptions, frequencyOptions, symptoms as staticSymptoms, warningLightOptions as staticWarningLights, years
 } from "./form-data";
+import { submitDiagnosis, DiagnosisPrediction, severityLabels, urgencyLabels, checkApiHealth, getFormData } from "@/lib/diagnosis-api";
 
 const schema = z.object({
   brand: z.string().min(1, "La marque est requise"),
@@ -37,7 +40,12 @@ const schema = z.object({
 });
 
 type FormValues = z.infer<typeof schema>;
-type FormProps = { form: UseFormReturn<FormValues> };
+type FormProps = { 
+  form: UseFormReturn<FormValues>;
+  problemCategories?: Array<{ value: string; label: string; icon?: any }>;
+  symptoms?: Array<{ id: string; label: string }>;
+  warningLightOptions?: Array<{ id: string; label: string }>;
+};
 
 function Step1({ form }: FormProps) {
   return (
@@ -110,7 +118,7 @@ function Step1({ form }: FormProps) {
   );
 }
 
-function Step2({ form }: FormProps) {
+function Step2({ form, problemCategories = staticProblemCategories }: FormProps) {
   return (
     <div className="space-y-6">
       <FormField control={form.control} name="problemCategory" render={({ field }) => (
@@ -171,7 +179,7 @@ function Step2({ form }: FormProps) {
   );
 }
 
-function Step3({ form }: FormProps) {
+function Step3({ form, symptoms = staticSymptoms, warningLightOptions = staticWarningLights }: FormProps) {
   return (
     <div className="space-y-8">
       <FormField control={form.control} name="symptoms" render={() => (
@@ -263,7 +271,15 @@ function Step4({ form }: FormProps) {
 export function CarDiagnosticForm() {
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [prediction, setPrediction] = useState<DiagnosisPrediction | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [apiConnected, setApiConnected] = useState<boolean | null>(null);
+  
+  // Dynamic form data from backend
+  const [symptoms, setSymptoms] = useState<Array<{ id: string; label: string }>>(staticSymptoms);
+  const [warningLightOptions, setWarningLightOptions] = useState<Array<{ id: string; label: string }>>(staticWarningLights);
+  const [problemCategories, setProblemCategories] = useState(staticProblemCategories);
+  const [isLoadingFormData, setIsLoadingFormData] = useState(true);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -273,6 +289,56 @@ export function CarDiagnosticForm() {
       symptoms: [], warningLights: [], problemDescription: "", recentMaintenance: "", additionalNotes: "",
     },
   });
+
+  // Load dynamic form data and check API connection on mount
+  React.useEffect(() => {
+    const loadFormData = async () => {
+      setIsLoadingFormData(true);
+      try {
+        const connected = await checkApiHealth();
+        setApiConnected(connected);
+        
+        if (connected) {
+          // Try to load dynamic form data from backend
+          try {
+            const formData = await getFormData();
+            if (formData.success) {
+              setSymptoms(formData.symptoms);
+              setWarningLightOptions(formData.warningLights);
+              // Map problem categories to include icons (keep static icons)
+              const mappedCategories = formData.problemCategories.map(pc => {
+                const staticCat = staticProblemCategories.find(sc => sc.value === pc.value);
+                return {
+                  value: pc.value,
+                  label: pc.label,
+                  icon: staticCat?.icon || Settings
+                };
+              });
+              setProblemCategories(mappedCategories.length > 0 ? mappedCategories : staticProblemCategories);
+              console.log("✅ Dynamic form data loaded from backend");
+            }
+          } catch (formDataError) {
+            console.warn("Failed to load dynamic form data, using static data:", formDataError);
+            // Keep static data as fallback
+          }
+        }
+      } catch (error) {
+        console.error("Error loading form data:", error);
+      } finally {
+        setIsLoadingFormData(false);
+      }
+    };
+    
+    loadFormData();
+    
+    // Check API health every 30 seconds
+    const interval = setInterval(async () => {
+      const connected = await checkApiHealth();
+      setApiConnected(connected);
+    }, 30000);
+    
+    return () => clearInterval(interval);
+  }, []);
 
   const validateStep = async (s: number) => {
     const fields: Record<number, (keyof FormValues)[]> = {
@@ -289,22 +355,203 @@ export function CarDiagnosticForm() {
 
   const onSubmit = async (data: FormValues) => {
     setIsSubmitting(true);
-    console.log("Diagnostic data:", data);
-    await new Promise((r) => setTimeout(r, 2000));
-    setIsSubmitting(false);
-    setIsSubmitted(true);
+    setError(null);
+    try {
+      // Ensure all required fields are present and properly formatted
+      const formData = {
+        brand: data.brand.trim(),
+        model: data.model.trim(),
+        year: data.year.trim(),
+        carType: data.carType,
+        fuelType: data.fuelType,
+        transmission: data.transmission,
+        mileage: data.mileage.trim(),
+        problemCategory: data.problemCategory,
+        problemSeverity: data.problemSeverity,
+        problemDuration: data.problemDuration,
+        problemFrequency: data.problemFrequency,
+        symptoms: Array.isArray(data.symptoms) ? data.symptoms : [],
+        warningLights: Array.isArray(data.warningLights) ? data.warningLights : [],
+        problemDescription: data.problemDescription.trim(),
+        recentMaintenance: data.recentMaintenance?.trim() || "",
+        additionalNotes: data.additionalNotes?.trim() || "",
+      };
+
+      // Validate that we have at least symptoms or description
+      if (formData.symptoms.length === 0 && formData.problemDescription.length < 10) {
+        setError("Veuillez sélectionner au moins un symptôme ou fournir une description détaillée");
+        setIsSubmitting(false);
+        return;
+      }
+
+      const response = await submitDiagnosis(formData);
+      
+      if (response.success && response.prediction) {
+      setPrediction(response.prediction);
+        
+        // Save diagnosis to database
+        try {
+          const saveData = {
+            // Form data
+            ...formData,
+            // Prediction results - map field names correctly (backend uses snake_case, DB uses camelCase)
+            category: response.prediction.category,
+            diagnosis: response.prediction.diagnosis,
+            partInvolved: response.prediction.part_involved,
+            severity: response.prediction.severity,
+            urgency: response.prediction.urgency,
+            repairAction: response.prediction.repair_action,
+            estimatedCostMin: response.prediction.estimated_cost_min,
+            estimatedCostMax: response.prediction.estimated_cost_max,
+            confidence: response.prediction.confidence,
+          };
+
+          console.log("Saving diagnosis to database:", saveData);
+
+          const saveResponse = await fetch("/api/diagnosis/save", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(saveData),
+          });
+
+          if (!saveResponse.ok) {
+            const errorData = await saveResponse.json().catch(() => ({}));
+            console.error("❌ Error saving diagnosis:", errorData);
+            console.error("Response status:", saveResponse.status);
+            console.error("Request data sent:", saveData);
+            // Log error but prediction was successful - user can still see results
+            console.warn("Diagnostic prédit avec succès mais non sauvegardé en base de données");
+          } else {
+            const saveResult = await saveResponse.json();
+            console.log("✅ Diagnosis saved successfully to database:", saveResult);
+            // Refresh dashboard stats after successful save
+            window.dispatchEvent(new Event('diagnosis-saved'));
+          }
+        } catch (saveError) {
+          console.error("Error saving diagnosis:", saveError);
+          // Log error but prediction was successful - user can still see results
+          console.warn("Diagnostic prédit avec succès mais erreur lors de la sauvegarde");
+        }
+      } else {
+        setError("Réponse invalide du serveur");
+      }
+    } catch (err) {
+      console.error("Diagnosis submission error:", err);
+      if (err instanceof Error) {
+        setError(err.message);
+      } else if (typeof err === 'string') {
+        setError(err);
+      } else {
+        setError('Une erreur est survenue lors de la connexion au serveur. Vérifiez que le backend est démarré.');
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  if (isSubmitted) {
+  const resetForm = () => {
+    setPrediction(null);
+    setError(null);
+    setStep(1);
+    form.reset();
+  };
+
+  // Show prediction results
+  if (prediction) {
+    const severity = severityLabels[prediction.severity] || severityLabels.moderate;
+    const urgency = urgencyLabels[prediction.urgency] || urgencyLabels.medium;
+
+    return (
+      <Card className="max-w-2xl mx-auto">
+        <CardHeader className="text-center border-b">
+          <CardTitle className="text-2xl flex items-center justify-center gap-2">
+            <CheckCircle2 className="h-6 w-6 text-green-600" /> Résultat du Diagnostic
+          </CardTitle>
+          <CardDescription>
+            Confiance: {prediction.confidence}%
+          </CardDescription>
+          <div className="mt-2">
+            <div className="inline-flex items-center gap-2 text-sm text-green-600 bg-green-50 px-3 py-1 rounded-full">
+              <CheckCircle2 className="h-4 w-4" />
+              <span>Diagnostic enregistré dans la base de données</span>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="pt-6 space-y-6">
+          {/* Diagnosis */}
+          <div className="bg-blue-50 p-4 rounded-lg">
+            <h3 className="font-semibold text-lg flex items-center gap-2">
+              <Wrench className="h-5 w-5" /> Diagnostic
+            </h3>
+            <p className="text-xl font-bold text-blue-800 mt-1">{prediction.diagnosis}</p>
+            <p className="text-gray-600 mt-2">{prediction.repair_action}</p>
+          </div>
+
+          {/* Severity & Urgency */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="p-4 border rounded-lg">
+              <p className="text-sm text-gray-500">Sévérité</p>
+              <Badge className={severity.color}>{severity.label}</Badge>
+              <p className="text-xs text-gray-500 mt-1">{severity.desc}</p>
+            </div>
+            <div className="p-4 border rounded-lg">
+              <p className="text-sm text-gray-500">Urgence</p>
+              <Badge className={urgency.color}>{urgency.label}</Badge>
+            </div>
+          </div>
+
+          {/* Cost Estimate */}
+          <div className="bg-green-50 p-4 rounded-lg">
+            <h3 className="font-semibold flex items-center gap-2">
+              <DollarSign className="h-5 w-5" /> Coût estimé
+            </h3>
+            <p className="text-2xl font-bold text-green-800">
+              {prediction.estimated_cost_min}€ - {prediction.estimated_cost_max}€
+            </p>
+            <p className="text-sm text-gray-600">Pièce: {prediction.part_involved}</p>
+          </div>
+
+          {/* Vehicle Info */}
+          <div className="bg-gray-50 p-4 rounded-lg">
+            <h3 className="font-semibold mb-2">Véhicule analysé</h3>
+            <p className="text-gray-700">
+              {prediction.vehicle.brand} {prediction.vehicle.model} ({prediction.vehicle.year}) - {prediction.vehicle.mileage} km
+            </p>
+          </div>
+
+          <Button onClick={resetForm} className="w-full">Nouveau diagnostic</Button>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Show error
+  if (error) {
     return (
       <Card className="max-w-2xl mx-auto">
         <CardContent className="pt-10 pb-10 text-center space-y-4">
-          <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
-            <CheckCircle2 className="h-8 w-8 text-green-600" />
+          <div className="mx-auto w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
+            <AlertTriangle className="h-8 w-8 text-red-600" />
           </div>
-          <h2 className="text-2xl font-bold">Diagnostic soumis avec succès!</h2>
-          <p className="text-gray-600">Nous analysons les informations de votre véhicule.</p>
-          <Button onClick={() => { setIsSubmitted(false); setStep(1); form.reset(); }}>Nouveau diagnostic</Button>
+          <h2 className="text-2xl font-bold">Erreur</h2>
+          <p className="text-gray-600">{error}</p>
+          {apiConnected === false && (
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-left">
+              <p className="text-sm text-yellow-800 font-semibold mb-2">Conseil de dépannage:</p>
+              <ul className="text-sm text-yellow-700 list-disc list-inside space-y-1">
+                <li>Vérifiez que le backend Flask est démarré sur le port 5000</li>
+                <li>Exécutez: <code className="bg-yellow-100 px-1 rounded">cd fix-mycar-back && python run.py</code></li>
+                <li>Vérifiez que l'URL de l'API est correcte dans les variables d'environnement</li>
+              </ul>
+            </div>
+          )}
+          <div className="flex gap-2 justify-center">
+            <Button onClick={resetForm} variant="outline">Retour au formulaire</Button>
+            <Button onClick={() => {
+              setError(null);
+              checkApiHealth().then(setApiConnected);
+            }}>Vérifier la connexion</Button>
+          </div>
         </CardContent>
       </Card>
     );
@@ -320,6 +567,23 @@ export function CarDiagnosticForm() {
             <Car className="h-6 w-6" /> Diagnostic Automobile
           </CardTitle>
           <CardDescription>Remplissez ce formulaire pour obtenir un diagnostic précis</CardDescription>
+          {/* API Connection Status */}
+          {apiConnected !== null && (
+            <div className="mt-2 space-y-1">
+              {apiConnected ? (
+                <div className="inline-flex items-center gap-2 text-sm text-green-600">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                  <span>API connectée</span>
+                  {isLoadingFormData && <span className="text-xs text-gray-500">(Chargement des données dynamiques...)</span>}
+                </div>
+              ) : (
+                <div className="inline-flex items-center gap-2 text-sm text-red-600">
+                  <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                  <span>API non connectée - Vérifiez que le backend est démarré</span>
+                </div>
+              )}
+            </div>
+          )}
         </CardHeader>
         <CardContent className="pt-8">
           {/* Step Indicator */}
@@ -339,8 +603,8 @@ export function CarDiagnosticForm() {
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               {step === 1 && <Step1 form={form} />}
-              {step === 2 && <Step2 form={form} />}
-              {step === 3 && <Step3 form={form} />}
+              {step === 2 && <Step2 form={form} problemCategories={problemCategories} />}
+              {step === 3 && <Step3 form={form} symptoms={symptoms} warningLightOptions={warningLightOptions} />}
               {step === 4 && <Step4 form={form} />}
 
               <div className="flex justify-between pt-6 border-t">
@@ -350,8 +614,14 @@ export function CarDiagnosticForm() {
                 {step < 4 ? (
                   <Button type="button" onClick={next}>Suivant <ChevronRight className="h-4 w-4 ml-2" /></Button>
                 ) : (
-                  <Button type="submit" disabled={isSubmitting}>
-                    {isSubmitting ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Analyse...</> : "Soumettre le diagnostic"}
+                  <Button type="submit" disabled={isSubmitting || apiConnected === false}>
+                    {isSubmitting ? (
+                      <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Analyse...</>
+                    ) : apiConnected === false ? (
+                      "API non connectée"
+                    ) : (
+                      "Soumettre le diagnostic"
+                    )}
                   </Button>
                 )}
               </div>

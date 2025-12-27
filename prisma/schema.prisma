@@ -31,5 +31,85 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
+  // Relations
+  vehicles      Vehicle[]
+  diagnostics   Diagnosis[]
+
+  // Indexes for better query performance
+  @@index([role])
+  @@index([createdAt])
+  @@index([emailVerified])
+  @@index([role, createdAt])
   @@map("users")
+}
+
+// Vehicle model
+model Vehicle {
+  id            String      @id @default(cuid())
+  userId        String
+  brand         String
+  model         String
+  year          String
+  carType       String
+  fuelType      String
+  transmission  String
+  mileage       String
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  // Relations
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  diagnostics   Diagnosis[]
+
+  @@index([userId])
+  @@index([createdAt])
+  @@map("vehicles")
+}
+
+// Diagnosis model
+model Diagnosis {
+  id                  String      @id @default(cuid())
+  userId              String
+  vehicleId           String?
+  
+  // Form data
+  problemCategory     String
+  problemSeverity     String
+  problemDuration     String
+  problemFrequency    String
+  symptoms            String[]    // Array of symptom IDs
+  warningLights       String[]    // Array of warning light IDs
+  problemDescription  String
+  recentMaintenance   String?
+  additionalNotes     String?
+
+  // Prediction results
+  category            String
+  diagnosis           String
+  partInvolved        String
+  severity            String
+  urgency             String
+  repairAction        String
+  estimatedCostMin    Float
+  estimatedCostMax    Float
+  confidence          Float
+
+  // Vehicle info (snapshot at time of diagnosis)
+  vehicleBrand        String?
+  vehicleModel        String?
+  vehicleYear         String?
+  vehicleMileage      String?
+
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt
+
+  // Relations
+  user                User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  vehicle             Vehicle?    @relation(fields: [vehicleId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([createdAt])
+  @@index([category])
+  @@index([severity])
+  @@map("diagnostics")
 }

@@ -81,6 +81,13 @@ export async function GET(request: NextRequest) {
 
     const googleUser: GoogleUserInfo = await userInfoResponse.json();
 
+    // Log Google user info for debugging
+    console.log("Google user info:", {
+      email: googleUser.email,
+      name: googleUser.name,
+      picture: googleUser.picture,
+    });
+
     // Find or create user in database
     let user = await prisma.user.findUnique({
       where: { email: googleUser.email.toLowerCase() },
@@ -95,9 +102,10 @@ export async function GET(request: NextRequest) {
           passwordHash: "", // No password for OAuth users
           role: "OWNER",
           emailVerified: googleUser.verified_email ? new Date() : null,
-          image: googleUser.picture,
+          image: googleUser.picture || null,
         },
       });
+      console.log("Created new user with image:", user.image);
     } else {
       // Update existing user with Google info
       user = await prisma.user.update({
@@ -107,6 +115,7 @@ export async function GET(request: NextRequest) {
           emailVerified: googleUser.verified_email ? new Date() : user.emailVerified,
         },
       });
+      console.log("Updated user with image:", user.image);
     }
 
     // Create session
